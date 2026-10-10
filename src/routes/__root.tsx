@@ -12,6 +12,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { Header, Footer, MobileBar, WhatsApp, CookieBanner } from "@/components/site/chrome";
+import { site, hours, dayNames } from "@/content/site";
 
 function NotFoundComponent() {
   return (
@@ -73,27 +75,40 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   );
 }
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Restaurant",
+  name: site.name,
+  servesCuisine: ["Kenyan", "Kalenjin", "Nyama Choma"],
+  priceRange: site.priceRange,
+  telephone: site.phone,
+  email: site.email,
+  address: { "@type": "PostalAddress", streetAddress: site.address, addressLocality: "Eldoret", addressCountry: "KE" },
+  hasMenu: "/menu",
+  acceptsReservations: true,
+  openingHoursSpecification: Object.entries(hours).filter(([, h]) => h).map(([d, h]) => ({
+    "@type": "OpeningHoursSpecification", dayOfWeek: dayNames[Number(d)], opens: h!.open, closes: h!.close,
+  })),
+};
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { title: "Eldoret Restaurant — Nyama Choma & Kalenjin Kitchen" },
+      { name: "description", content: "Nyama choma, mursik, chai and mandazi in Eldoret, Kenya." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Manrope:wght@400;500;600;700&display=swap" },
     ],
+    scripts: [{ type: "application/ld+json", children: JSON.stringify(jsonLd) }],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -120,8 +135,15 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:bg-card focus:p-3">Skip to content</a>
+      <Header />
+      <main id="main" className="min-h-[60vh]">
+        <Outlet />
+      </main>
+      <Footer />
+      <MobileBar />
+      <WhatsApp />
+      <CookieBanner />
     </QueryClientProvider>
   );
 }
